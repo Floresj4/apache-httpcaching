@@ -20,6 +20,7 @@
 
 	<modules>
 		<module>httpcaching-service</module>
+		<module>httpcaching-client</module>
 	</modules>
 
 	<dependencyManagement>
