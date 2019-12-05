@@ -15,6 +15,11 @@ import org.apache.log4j.PropertyConfigurator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import net.sf.ehcache.Cache;
+import net.sf.ehcache.CacheManager;
+import net.sf.ehcache.config.CacheConfiguration;
+import net.sf.ehcache.store.MemoryStoreEvictionPolicy;
+
 /**
  * An application designed to exercise the implementation
  * of the apache httpclient-cache.  The httpcaching-service/SimpleController
@@ -50,7 +55,20 @@ public class Application {
 	}
 
 	static EhcacheHttpCacheStorage getEhcacheHttpCacheStorage() {
-		return null;
+		//create a manager to be able to instantiate the cache
+		CacheManager cacheManager = CacheManager.create();
+
+		CacheConfiguration cacheConfig = new CacheConfiguration()
+				.maxEntriesLocalHeap(1000)
+				.memoryStoreEvictionPolicy(MemoryStoreEvictionPolicy.LFU)
+				.name("httpcaching-client")
+				.timeToLiveSeconds(120)
+				.timeToIdleSeconds(60)
+				.eternal(false);
+
+		//add to be able to get it back out and wrap
+		cacheManager.addCache(new Cache(cacheConfig));
+		return new EhcacheHttpCacheStorage(cacheManager.getCache("httpcaching-client"));
 	}
 	
 	public static void main(String[] args) throws IOException {
@@ -60,6 +78,7 @@ public class Application {
 		//create the caching client
 		CloseableHttpClient cachingClient = CachingHttpClients.custom()
 		        .setCacheConfig(getCacheConfig())
+		        .setHttpCacheStorage(getEhcacheHttpCacheStorage())
 		        .setDefaultRequestConfig(getRequestConfig())
 		        .build();
 
