@@ -16,12 +16,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/get")
 public class SimpleController {
 
-	@GetMapping(value = "/some/resource", produces = "application/octet-stream")
+	@GetMapping(value = "/some/resource", produces = "application/jpg")
 	public InputStreamResource getSomeResource(HttpServletResponse response) throws FileNotFoundException {
 		//set the response content type and important headers
-		response.setContentType("application/jpeg");
+		response.setContentType("application/jpg");
 		response.addHeader("Content-Disposition", "attachment; filename=\"java.jpg\"");
 		response.addHeader("Cache-Control", CacheControl.maxAge(10, TimeUnit.MINUTES)
+				.cachePublic()
 				.getHeaderValue());
 
 		return new InputStreamResource(new FileInputStream("./src/main/resources/java.jpg"));
