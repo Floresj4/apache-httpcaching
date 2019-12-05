@@ -1,4 +1,4 @@
-package org.httpcaching.client;
+package com.flores.projects.httpcaching.client;
 
 import java.io.IOException;
 

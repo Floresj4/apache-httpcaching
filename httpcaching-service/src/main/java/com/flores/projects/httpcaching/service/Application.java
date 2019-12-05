@@ -1,4 +1,4 @@
-package org.httpcaching.service;
+package com.flores.projects.httpcaching.service;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

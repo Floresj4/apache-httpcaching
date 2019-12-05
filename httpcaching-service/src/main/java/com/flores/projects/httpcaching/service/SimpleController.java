@@ -1,4 +1,4 @@
-package org.httpcaching.service;
+package com.flores.projects.httpcaching.service;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
