@@ -11,16 +11,37 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.cache.CacheConfig;
 import org.apache.http.impl.client.cache.CachingHttpClients;
 import org.apache.http.impl.client.cache.ehcache.EhcacheHttpCacheStorage;
+import org.apache.log4j.PropertyConfigurator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+/**
+ * An application designed to exercise the implementation
+ * of the apache httpclient-cache.  The httpcaching-service/SimpleController
+ * has a single endpoint that returns a jpeg image.  This application
+ * requests the SimpleController/get/some/resource twice to demonstrate
+ * the initial cache missed followed by a cache hit.
+ * @author Jason
+ */
 public class Application {
+
+	private static final Logger logger = LoggerFactory.getLogger(Application.class);
 	
+	/**
+	 * @return a cacheconfig with a set number of entries allowed
+	 * and the maximum size for a single object
+	 */
 	static CacheConfig getCacheConfig() {
 		return CacheConfig.custom()
 		        .setMaxCacheEntries(1000)
-		        .setMaxObjectSize(8192)
+		        .setMaxObjectSize(10 * 1000000)
 		        .build();
 	}
 
+	/**
+	 * @return a request configuration with a set connection
+	 * socket timeout
+	 */
 	static RequestConfig getRequestConfig() {
 		return RequestConfig.custom()
 		        .setConnectTimeout(30000)
@@ -33,15 +54,17 @@ public class Application {
 	}
 	
 	public static void main(String[] args) throws IOException {
-
+		//add log4j with apache logging enabled to see what's going on
+		PropertyConfigurator.configure("log4j.properties");
+		
+		//create the caching client
 		CloseableHttpClient cachingClient = CachingHttpClients.custom()
 		        .setCacheConfig(getCacheConfig())
 		        .setDefaultRequestConfig(getRequestConfig())
 		        .build();
 
-		HttpCacheContext context = HttpCacheContext.create();
-
-		for(int i = 0; i < 4; i++) {
+		for(int i = 0; i < 2; i++) {
+			HttpCacheContext context = HttpCacheContext.create();
 			HttpGet httpget = new HttpGet("http://localhost:8080/get/some/resource");	
 			CloseableHttpResponse response = cachingClient.execute(httpget, context);
 
@@ -49,22 +72,23 @@ public class Application {
 			    CacheResponseStatus responseStatus = context.getCacheResponseStatus();
 			    switch (responseStatus) {
 			        case CACHE_HIT:
-			            System.out.println("A response was generated from the cache with " +
-			                    "no requests sent upstream");
+			            logger.debug("A response was generated from the cache with no requests sent upstream");
 			            break;
+			            
 			        case CACHE_MODULE_RESPONSE:
-			            System.out.println("The response was generated directly by the " +
-			                    "caching module");
+			        	logger.debug("The response was generated directly by the caching module");
 			            break;
+			            
 			        case CACHE_MISS:
-			            System.out.println("The response came from an upstream server");
+			        	logger.debug("The response came from an upstream server");
 			            break;
+			            
 			        case VALIDATED:
-			            System.out.println("The response was generated from the cache " +
-			                    "after validating the entry with the origin server");
+			        	logger.debug("The response was generated from the cache after validating the entry with the origin server");
 			            break;
 			    }
-			} finally {
+			}
+			finally {
 			    response.close();
 			}
 		}
