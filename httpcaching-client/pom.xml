@@ -18,7 +18,7 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<httpclient.version>4.5.10</httpclient.version>
+		<httpclient.version>4.5.13</httpclient.version>
 		<httpclient-cache.version>4.5.2</httpclient-cache.version>
 		<ehcache.version>2.10.4</ehcache.version>
 	</properties>
